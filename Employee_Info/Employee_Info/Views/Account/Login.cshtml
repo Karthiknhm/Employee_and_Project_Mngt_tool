@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Login</title>
+    <link href="~/Assert/LoginStyle.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="">
+
+    <script>
+        $(document).ready(function () {
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "positionClass": "toast-top-right",
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            }
+
+            $("#btn").click(function () {
+                var usrnam = $("#username").val();
+                var paswrd = $("#password").val();
+
+                var Tb_M_User = {
+                    UserName: usrnam,
+                    Uspassword: paswrd
+                }
+
+                $.ajax({
+                    type: "post",
+                    url: "Login",
+                    data: JSON.stringify(Tb_M_User),
+                    dataType: "Json",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        console.log("came in success", data)
+                        if (data.msg == "Validuser") {
+                            window.location.href = data.url;
+                        }
+                        else {
+                            toastr.error(data.msg);
+                        }
+                    },
+                    error: function () {
+                        toastr.error("Error occured while Data Submited!!");
+                    }
+                });
+
+                return false;
+            });
+
+        });
+    </script>
+</head>
+<body class="login-backimg">
+    <div class="row">
+        <div class="col-md-2">
+        </div>
+        <div class="login-cmt col-md-4">
+            <h2>SIGN UP RIGHT NOW !</h2>
+            <hr />
+            <p>The tool will use to manage employee and their projects based on the signed user in role</p>
+        </div>
+        <div class="myform col-md-4">
+            <div class="Login-title">
+                <h2 align="center"><i class='fas fa-users' style='font-size:36px'></i> LOGIN</h2>
+            </div>
+            <hr />
+            <form id="formID">
+                <div class="row">
+                    <div class="control-label col-sm-5">
+                        <i class='far fa-user'></i>
+                        <label> User Name</label>
+                    </div>
+                    <div class="col-sm-7">
+                        <input type="text" id="username" class="form-control" maxlength="49" autocomplete="off" required />
+                        <p id="errUserName"></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="control-label col-sm-5">
+                        <i class='fas fa-key'></i>
+                        <label> Password</label>
+                    </div>
+                    <div class="col-sm-7">
+                        <input type="password" id="password" class="form-control" maxlength="49" autocomplete="off" required />
+                        <p id="errName"></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="control-label col-sm-5">
+                    </div>
+                    <div class="col-sm-7">
+                        <button class="btn" type="submit" id="btn" value="Login">Sign</button>
+                        <a href="Register" title="Register new user">  <i class='fas fa-user-plus'></i> user</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-2">
+        </div>
+    </div>
+</body>
+</html>

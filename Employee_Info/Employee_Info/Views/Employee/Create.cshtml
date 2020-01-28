@@ -1,0 +1,551 @@
+﻿<!doctype html>
+<html>
+
+<head>
+    <title>Create Employee</title>
+    <link rel="stylesheet" href="~/Assert/CreateEmployee.css">
+    <link rel="shortcut icon" href="">
+
+    <script>
+        $(document).ready(function () {
+            var BoolName = false, BoolGender = false, BoolDOB = false, BoolEmail = false, BoolAdr = false, BoolTech = false, BoolBranch = false, BoolMarital = false;
+
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "positionClass": "toast-top-right",
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            }
+
+            var today = new Date();
+            var dtThatYear = today.getFullYear() - 18;
+            var dtThatDate = new Date();
+            dtThatDate.setFullYear(dtThatYear);
+            var NoOfDates = Math.round((today - dtThatDate) / (1000 * 60 * 60 * 24))
+            $(function () {
+                $("#bday").datepicker({
+                    dateFormat: 'mm/dd/yy',
+                    maxDate: -parseInt(NoOfDates),
+                    showOn: 'button',
+                    buttonImage: "http://jqueryui.com/resources/demos/datepicker/images/calendar.gif",
+                    buttonImageOnly: true
+                });
+            });
+
+            $.ajax({
+                type: "Get",
+                url: "GetBranchData",
+                datatype: "JSON",
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        var Branch = data[i];
+                        var id = Branch.Id;
+                        var name = Branch.Name;
+                        var opt = new Option(name, id);
+                        $("#branch").append(opt);
+                    }
+                },
+                error: function () {
+                    toastr.error("Error occured When loading branches!!")
+                }
+            });
+
+            $.ajax({
+                type: "Get",
+                url: "GetTechologyData",
+                datatype: "JSON",
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        var technology = data[i];
+                        var id = technology.TechId;
+                        var name = technology.TechName;
+
+                        var container = $('#Techlist');
+                        var li = $('<li/>').addClass("list-group-item").addClass("padding_Checkbox_list").appendTo(container);
+                        $('<input />', { type: 'checkbox', id: 'cb' + id, value: id, name: "TechTag" }).attr('type', 'checkbox').appendTo(li);
+                        $('<label />', { 'for': 'cb' + id, text: name }).appendTo(li);
+                    }
+                },
+                error: function () {
+                    toastr.error("Error occured While loading Technoligies!!")
+                }
+            });
+
+
+            $("#name").focus(function () {
+                if ($("#name").val().length >= 1) {
+                    $("#errName").html("");
+                    BoolName = true;
+                }
+            });
+            $("#name").blur(function () {
+                validateName("withErrText");
+            });
+            $("#name").change(function () {
+                validateName("withErrText");
+            });
+            function validateName(str) {
+                    if ($("#name").val().length >= 1) {
+                        $("#errName").html("");
+                        BoolName = true;
+                    }
+                    else {
+                        if (str == "withErrText") {
+                            $("#errName").text("Name field required");
+                            $("#errName").addClass("errormsg");
+                        }
+                        BoolName = false;
+                    }
+            }
+
+
+            $("input[name='gender']").focus(function () {
+                var gender = $("input[name='gender']:checked").val();
+                var errGender = $("#errGender").text();
+                if (gender == undefined && errGender == "Select Gender") {
+                    $("#errGender").text("Select Gender");
+                    $("#errGender").addClass("errormsg");
+                    BoolGender = false;
+                }
+                else {
+                    $("#errGender").html("");
+                    BoolGender = true;
+                }
+            });
+            $("input[name='gender']").blur(function () {
+                validateGender("withErrText");
+            });
+            $("input[name='gender']").change(function () {
+                validateGender("withErrText");
+            });
+            function validateGender(str) {
+                var gender = $("input[name='gender']:checked").val();
+               
+                if (gender == undefined) {
+                    if (str == "withErrText") {
+                        $("#errGender").text("Select Gender");
+                        $("#errGender").addClass("errormsg");
+                    }
+                    BoolGender = false;
+                }
+                else {
+                    $("#errGender").html("");
+                    BoolGender = true;
+                }
+              
+            }
+
+
+            $("#bday").focus(function () {
+                if (($('#bday').val().toString().length == 10)) {
+                    $("#errDOB").html("");
+                    BoolDOB = true;
+                }
+            });
+            $("#bday").blur(function () {
+                validateDOB("withErrText");
+
+            });
+            $("#bday").change(function () {
+                validateDOB("withErrText");
+            });
+            function validateDOB(str) {
+                var dobValue = new Date($('#bday').val());
+                
+                if (($('#bday').val().toString().length == 0)) {
+                    if (str == "withErrText") {
+                        $("#errDOB").text("Date of birth field required");
+                        $("#errDOB").addClass("errormsg");
+                    }
+                    BoolDOB = false;
+                    }
+                else if (($('#bday').val().toString().length < 10)) {
+                    if (str == "withErrText") {
+                        $("#errDOB").text("Invalid date");
+                        $("#errDOB").addClass("errormsg");
+                    }
+                     BoolDOB = false;
+                    }
+                else if (dobValue.getFullYear() >= today.getFullYear() - 18 && dobValue.getMonth() >= today.getMonth() && dobValue.getDate() > today.getDate()) {
+                    if (str == "withErrText") {
+                        $("#errDOB").text("Must be 18 years old");
+                        $("#errDOB").addClass("errormsg");
+                    }
+                    BoolDOB = false;
+                }
+                else {
+                    $("#errDOB").html("");
+                    BoolDOB = true;
+                }
+                
+            }
+
+
+            $("#email").focus(function () {
+                if ($("#email").val().length >= 1) {
+                    $("#errEmail").html("");
+                    BoolEmail = true;
+                }
+            });
+            $("#email").blur(function () {
+                validateEmail("withErrText");
+            });
+            $("#email").change(function () {
+                validateEmail("withErrText");
+            });
+            function validateEmail(str) {
+                var reg = /^([A-Za-z0-9_\-\.])+\@@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+                if (!reg.test($("#email").val())) {
+                    if (str == "withErrText") {
+                        $("#errEmail").text("Invalid email id");
+                        $("#errEmail").addClass("errormsg");
+                    }
+                    BoolEmail = false;
+                }
+                else if ($("#email").val().length >= 1) {
+                    $("#errEmail").html("");
+                    BoolEmail = true;
+                }
+                else {
+                    if (str == "withErrText") {
+                        $("#errEmail").text("email field required");
+                        $("#errEmail").addClass("errormsg");
+                    }
+                    BoolEmail = false;
+                }
+             
+            }
+
+
+            $("#adr").focus(function () {
+                $("#errAdr").html("");
+                if ($("#adr").val().trim().length >= 1) {
+                    BoolAdr = true;
+                }
+            });
+            $("#adr").blur(function () {
+                if ($("#adr").val().length <= 0) {
+                    BoolAdr = false;
+                }
+                validateAdr("withErrText");
+            });
+            $("#adr").change(function () {
+                validateAdr("withErrText");
+            });
+            function validateAdr(str) {
+                if ($("#adr").val().trim().length >= 1) {
+                    $("#errAdr").html("");
+                    BoolAdr = true;
+                }
+                else {
+                    if (str == "withErrText") {
+                        $("#errAdr").text("Address field required");
+                        $("#errAdr").addClass("errormsg");
+                    }
+                    BoolAdr = false;
+                }
+            }
+
+
+            $(document).on("focus", "input[name='TechTag']", function () {
+                var errTech = $("#errTech").val();
+                if (!$("input[name='TechTag']").is(":checked") && errTech == "Select atleast one technology") {
+                    $("#errTech").text("Select atleast one technology");
+                    $("#errTech").addClass("errormsg");
+                    BoolTech = false;
+                }
+            });
+            $(document).on("blur", "input[name='TechTag']", function () {
+                validateTech("withErrText");
+            });
+            $(document).on("change", "input[name='TechTag']", function () {
+                validateTech("withErrText");
+            });
+            function validateTech(str) {
+                if (!$("input[name='TechTag']").is(":checked")) {
+                    if (str == "withErrText") {
+                        $("#errTech").text("Select atleast one technology");
+                        $("#errTech").addClass("errormsg");
+                    }
+                    BoolTech = false;
+                }
+                else {
+                    $("#errTech").html("");
+                    BoolTech = true;
+                }
+             
+            }
+
+
+            $("#branch").focus(function () {
+                $("#errBranch").html("");
+            });
+            $("#branch").blur(function () {
+                validateBranch("withErrText");
+            });
+            $("#branch").change(function () {
+                validateBranch("withErrText");
+            });
+            function validateBranch(str) {
+                if ($("#branch").val() == "Select") {
+                    if (str == "withErrText") {
+                        $("#errBranch").text("Select Branch");
+                        $("#errBranch").addClass("errormsg");
+                    }
+                    BoolBranch = false;
+                }
+                else {
+                    $("#errBranch").html("");
+                    BoolBranch = true;
+                }
+             
+            }
+
+
+
+            $("input[name='marital']").focus(function () {
+                var marital = $("input[name='marital']:checked").val();
+                var errMarital = $("#errMarital").text();
+                if (marital == undefined && errMarital == "Select Marital Status") {
+                    $("#errMarital").text("Select Marital Status");
+                    $("#errMarital").addClass("errormsg");
+                    BoolMarital = false;
+                }
+                else {
+                    $("#errMarital").html("");
+                    BoolMarital = true;
+                }
+            });
+            $("input[name='marital']").blur(function () {
+                validateMarital("withErrText");
+            });
+            $("input[name='marital']").change(function () {
+                validateMarital("withErrText");
+            });
+            function validateMarital(str) {
+                var marital = $("input[name='marital']:checked").val();
+                if (marital == undefined) {
+                    if (str == "withErrText") {
+                        $("#errMarital").text("Select Marital Status");
+                        $("#errMarital").addClass("errormsg");
+                    }
+                    BoolMarital = false;
+                }
+                else {
+                    $("#errMarital").html("");
+                    BoolMarital = true;
+                }
+            }
+
+            $("#btn").click(function (event) {
+                var name = $("#name").val();
+                var gender = $("input[name='gender']:checked").val();
+                var dob = new Date($('#bday').val());
+                var email = $("#email").val();
+                var address = $('#adr').val();
+                var tech = "";
+                $("input[name='TechTag']:checked").each(function (i) {
+                    tech += $(this).val() + ",";
+                });
+                var tech = tech.substring(0, tech.length - 1);
+                var branch = $('#branch').val();
+                var marital = $("input[name='marital']:checked").val();
+
+                if (BoolName && BoolGender && BoolDOB && BoolEmail && BoolAdr && BoolTech && BoolBranch && BoolMarital) {
+                    event.preventDefault();
+                    var Employee = {
+                        Name: name,
+                        Gender: gender,
+                        DOB: dob,
+                        Email: email,
+                        Address: address,
+                        TechId: tech,
+                        CompanyBranchCode: branch,
+                        MaritalStatus: marital,
+                    }
+
+                    $.ajax({
+                        type: "post",
+                        url: "Create",
+                        data: JSON.stringify(Employee),
+                        dataType: "Json",
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if ("This " + email + " user already Exist" == data.msg) {
+                                toastr.info(data.msg);
+                            }
+                            else {
+                                window.location.replace("http://localhost:50183/Employee/Details");
+                                toastr.success(data.msg);
+                            }
+                        },
+                        error: function () {
+                            toastr.error("Error occured while Data Submited!!")
+                        }
+                    });
+                    return false;
+                }
+
+            });
+            $("#formID").on('change', function () {
+                validateName();
+                validateGender();
+                validateDOB();
+                validateEmail();
+                validateAdr();
+                validateTech();
+                validateBranch();
+                validateMarital();
+                if (BoolName && BoolGender && BoolDOB && BoolEmail && BoolAdr && BoolTech && BoolBranch && BoolMarital) {
+                    $("#btn").prop('disabled', false);
+                }
+                else {
+                    $("#btn").prop('disabled', true);
+                }
+            });
+
+            $("#clr, #clrModel").click(function () {
+                $(':input').val('');
+                $('#btn').val('ADD');
+                $('#clr').val('Clear');
+                $('#maleid').prop('checked', false);
+                $('#femaleid').prop('checked', false);
+                $("input[name='TechTag']").prop('checked', false);
+                $('#singleid').prop('checked', false);
+                $('#marriedid').prop('checked', false);
+                $('#activeid').prop('checked', false);
+                $("#errName").html("");
+                $("#errDOB").html("");
+                $("#errGender").html("");
+                $("#errEmail").html("");
+                $("#errAdr").html("");
+                $("#errBranch").html("");
+                $("#errTech").html("");
+                $("#errMarital").html("");
+            });
+            $("nav a").on("click", function () {
+                $("nav").find(".active").removeClass("active");
+                $(this).addClass("active");
+            });
+        });
+       
+    </script>
+</head>
+<body>
+    <div class="create-title">
+        <a style="float:right" href="~/Employee/Details"><button><i class='far fa-folder-open'></i> All Employee</button></a>
+        <h2><i class='far fa-address-book' style='font-size:36px'></i> Create Employee</h2>
+    </div>
+    <hr />
+    <div class="Submission_form">
+        <form id="formID">
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="control-label col-md-4">
+                    <label>Name<span> *</span> :</label>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" id="name" class="form-control" maxlength="49" autocomplete="off" required />
+                    <p id="errName"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="control-label col-md-4">
+                    <label>Gender<span> *</span> : </label>
+                </div>
+                <div class="col-md-6">
+                    <input type="radio" id="maleid" name="gender" value="M" required> Male
+                    <input type="radio" id="femaleid" name="gender" value="F" required> Female
+                    <p id="errGender"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="control-label col-md-4">
+                    <label>Date of birth<span> *</span> :</label>
+
+                </div>
+                <div class="col-md-6">
+                    <input type="text" id="bday" placeholder="mm/dd/yy" class="form-control" title="You should be over 18 years old" autocomplete="off" required>
+                    <p id="errDOB"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="control-label col-md-4">
+                    <label>Email<span> *</span> :</label>
+                </div>
+                <div class="col-md-6">
+                    <input type="email" id="email" class="form-control" maxlength="49" autocomplete="off" required />
+                    <p id="errEmail"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="control-label col-md-4">
+                    <label>Address<span> *</span> :</label>
+                </div>
+                <div class="col-md-6">
+                    <textarea rows="5" id="adr" cols="25" required></textarea>
+                    <p id="errAdr"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="control-label col-md-4">
+                    <label>Technology<span> *</span> : </label>
+                </div>
+                <div class="col-md-6">
+                    <div class="Checkbox_list">
+                        <ul class="list-group checked-list-box" id="Techlist"></ul>
+                    </div>
+                    <p id="errTech"></p>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="control-label col-md-4">
+                    <label>Branch<span> *</span> :</label>
+                </div>
+                <div class="col-md-6">
+                    <select class="form-control custom-select" id="branch" required>
+                        <option selected="selected">Select</option>
+                    </select>
+                    <p id="errBranch"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="control-label col-md-4">
+                    <label>Marital<span> *</span> : </label>
+                </div>
+                <div class="col-md-6">
+                    <input type="radio" id="singleid" name="marital" value="false" required> Single
+                    <input type="radio" id="marriedid" name="marital" value="true" required> Married
+                    <p id="errMarital"></p>
+                </div>
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div  class="col-md-10">
+                    <button class="btn" type="submit" id="btn" value="ADD" disabled><i class='fas fa-user-plus'></i> ADD</button>
+                    <button class="btn" type="submit" id="clr" value="Clear"><i class='fas fa-sync-alt'></i> Clear</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

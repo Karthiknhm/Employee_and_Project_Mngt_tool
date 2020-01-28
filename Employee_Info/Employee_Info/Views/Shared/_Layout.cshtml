@@ -1,0 +1,208 @@
+﻿<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management </title>
+    <link rel="shortcut icon" href="">
+    <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <script src="~/Scripts/modernizr-2.6.2.js"></script>
+    <!-- Add bootstrap -->
+    <link href="~/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <!-- Add Jquery -->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <!-- Add toastr -->
+    <script type="text/javascript" src="http://codeseven.github.com/toastr/toastr.js"></script>
+    <link rel="stylesheet" type="text/css" href="http://codeseven.github.com/toastr/toastr.css">
+    <!-- Add icon library -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/all.css">
+
+    <!-- Add dataTables library -->
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
+    <style>
+        footer {
+            background-color: black;
+        }
+
+        #justpushtobottom {
+            height: 82vh;
+        }
+    </style>
+    <script>
+
+        $(document).ready(function () {
+
+            $('.navbar-collapse').on('shown.bs.collapse', function () {
+                $("#navbarResponsive").css("margin-right", "40%");
+            });
+            $('.navbar-collapse').on('hide.bs.collapse', function () {
+                $("#navbarResponsive").css("margin-right", "-15px");
+            });
+
+            $('#querybtn').click(function () {
+                var QueryForm = {
+                    Email: $("#queryemail").val(),
+                    QueryComment: $("#querycomment").val()
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: 'http://localhost:50183/Employee/Form',
+                    data: JSON.stringify(QueryForm),
+                    dataType: "Json",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        toastr.info(data.msg);
+                    },
+                    error: function () {
+                        toastr.error("Error occured while Data Submited!!")
+                    }
+                });
+            });
+        });
+
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark  fixed-top nav-fix nav-backimg" id="mainNav">
+        <div class="container-fluid">
+            <!-- Collapse button -->
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav mr-auto ul-tabs">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item nav-pos">
+                            <a id="indexNav" class="nav-link js-scroll-trigger
+                           @(ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "activeClass" : "")"
+                               href="http://localhost:50183/Employee/Index">AWS</a>
+                        </li>
+                        if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+                        {
+                            <li class="nav-item nav-pos">
+                                <a id="DetailsNav" class="nav-link js-scroll-trigger
+                               @(ViewContext.RouteData.Values["Action"].ToString() == "Details" ? "activeClass" : "")"
+                                   href="http://localhost:50183/Employee/Details">Employees</a>
+                            </li>
+                        }
+                        if (User.IsInRole("Manager"))
+                        {
+                            <li class="nav-item nav-pos">
+                                <a id="AboutNav" class="nav-link js-scroll-trigger
+                                @(ViewContext.RouteData.Values["Action"].ToString() == "CreateProject" ? "activeClass" : "")"
+                                    href="http://localhost:50183/Project/CreateProject">Project</a>
+                            </li>
+                        }
+                        <li class="nav-item nav-pos">
+                            <a id="indexformNav" class="nav-link js-scroll-trigger
+                           @(ViewContext.RouteData.Values["Action"].ToString() == "Index#myform" ? "activeClass" : "")"
+                               href="http://localhost:50183/Employee/Index#myform">Contact</a>
+                        </li>
+                        <li class="nav-item nav-pos">
+                            <a id="AboutNav" class="nav-link js-scroll-trigger
+                           @(ViewContext.RouteData.Values["Action"].ToString() == "About" ? "activeClass" : "")"
+                               href="http://localhost:50183/Employee/About">About</a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item nav-pos">
+                            <a id="indexNav" class="nav-link js-scroll-trigger
+                           @(ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "activeClass" : "")"
+                               href="http://localhost:50183/Employee/Index">AWS</a>
+                        </li>
+
+                        <li class="nav-item nav-pos">
+                            <a id="AboutNav" class="nav-link js-scroll-trigger
+                           @(ViewContext.RouteData.Values["Action"].ToString() == "About" ? "activeClass" : "")"
+                               href="http://localhost:50183/Employee/About">About</a>
+                        </li>
+                    }
+                </ul>
+                <ul class="navbar-nav ml-auto" style="float:right !important">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item">
+                            <a id="LoginNav" class="nav-link js-scroll-trigger
+                           @(ViewContext.RouteData.Values["Action"].ToString() == "Login" ? "activeClass" : "")"
+                               href="http://localhost:50183/Account/Logout"><i class='fas fa-power-off'></i>Logout @User.Identity.Name</a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a id="LoginNav" class="nav-link js-scroll-trigger
+                           @(ViewContext.RouteData.Values["Action"].ToString() == "Login" ? "activeClass" : "")"
+                               href="http://localhost:50183/Account/Login">Login</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid content-container">
+        @RenderBody()
+
+    </div>
+
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-section about">
+                <h3 class="logo-class"><span>AWS</span>  Solution</h3>
+                <br />
+                <p>
+                    The information technology (IT) industry has become of the most robust industries in the world..
+                </p>
+                <div class="contact">
+                    <span><i class="fas fa-phone"></i>&nbsp; 123-456-789</span>
+                    <span><i class="fas fa-envelope"></i>&nbsp; sivaramkumar@SIVA.in</span>
+                </div>
+                <div class="socials">
+                    <a href=""><i class="fab fa-facebook"></i></a>
+                    <a href=""><i class="fab fa-twitter"></i></a>
+                    <a href=""><i class="fab fa-instagram"></i></a>
+                    <a href=""><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-section links">
+                <h3>Quick Links</h3>
+                <br />
+                <ul>
+                    <a href="http://localhost:50183/Employee/Index"><li>Home</li></a>
+                    <a href="http://localhost:50183/Employee/Details"><li>Employees</li></a>
+                    @*<a href="http://localhost:50183/Project/CreateProject"><li>Project</li></a>*@
+                    <a href="http://localhost:50183/Employee/Index#services"><li>Services</li></a>
+                    <a href="http://localhost:50183/Employee/About"><li>About Us</li></a>
+                    <a href="http://localhost:50183/Employee/Index#myform"><li>Contact</li></a>
+                </ul>
+            </div>
+            <div class="footer-section contactus">
+                <h3>Contact Us</h3>
+                <br />
+                <form action="Form" id="myform">
+                    <input class="input-ele" type="email" id="queryemail" name="" placeholder="Your emaill..">
+                    <textarea class="input-ele" id="querycomment" name="" cols="25" rows="4" placeholder="Your message.."></textarea>
+                    <button type="submit" id="querybtn" class="btn btn-big">
+                        <i class="fas fa-envelope"></i>
+                        Send
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            &copy; SIVA.in | Designed By SIVA
+        </div>
+    </div>
+
+    <link href="~/Assert/Index.css" rel="stylesheet" />
+</body>
+</html>

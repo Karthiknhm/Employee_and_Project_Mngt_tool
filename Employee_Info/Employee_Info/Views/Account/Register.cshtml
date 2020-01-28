@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Register</title>
+    <link href="~/Assert/LoginStyle.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="">
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type: "Get",
+                url: "GetRoleData",
+                datatype: "JSON",
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        var Role = data[i];
+                        var id = Role.RoleId;
+                        var name = Role.RoleName;
+                        var opt = new Option(name, id);
+                        $("#role").append(opt);
+                    }
+                },
+                error: function () {
+                    toastr.error("Error occured When loading branches!!")
+                }
+            });
+
+            toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "positionClass": "toast-top-right",
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            }
+
+            $("#btn").click(function () {
+                var usrnam = $("#username").val();
+                var paswrd = $("#password").val();
+                var roleid = $("#role").val();
+
+                var Tb_M_User = {
+                    UserName: usrnam,
+                    Uspassword: paswrd,
+                    UsRoleId: roleid
+                }
+
+                $.ajax({
+                    type: "post",
+                    url: "Register",
+                    data: JSON.stringify(Tb_M_User),
+                    dataType: "Json",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data.msg == "User Added Successfully") {
+                            toastr.success(data.msg);
+                            window.location.href = data.url;
+                        }
+                        else if (data.msg == "User Name already exist") {
+                            toastr.error(data.msg);
+                        }
+                        else {
+                            toastr.error(data.msg);
+                        }
+                    },
+                    error: function () {
+                        toastr.error("Error occured while Data Submited!!")
+                    }
+                });
+
+                return false
+            });
+        });
+
+    </script>
+</head>
+<body>
+    <div class="myform">
+        <div class="Login-title">
+            <h2 align="center"><i class='fas fa-users' style='font-size:36px'></i> Register</h2>
+        </div>
+        <hr />
+        <form id="formID">
+            <div class="row">
+                <div class="control-label col-sm-5">
+                    <label><i class='far fa-user'></i> UserName</label>
+                </div>
+                <div class="col-sm-7">
+                    <input type="text" id="username" class="form-control" maxlength="49" autocomplete="off" required />
+                    <p id="errUserName"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="control-label col-sm-5">
+                    <label><i class='fas fa-key'></i> Password</label>
+                </div>
+                <div class="col-sm-7">
+                    <input type="password" id="password" class="form-control" maxlength="49" autocomplete="off" required />
+                    <p id="errName"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="control-label col-sm-5">
+                    <label><i class='fas fa-key'></i> Confirm Password</label>
+                </div>
+                <div class="col-sm-7">
+                    <input type="password" id="Confirmpassword" class="form-control" maxlength="49" autocomplete="off" required />
+                    <p id="errName"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="control-label col-md-5">
+                    <label><i class='fas fa-user-lock'></i> Role</label>
+                </div>
+                <div class="col-md-7">
+                    <select class="form-control custom-select" id="role" required>
+                        <option selected="selected">Select</option>
+                    </select>
+                    <p id="errRole"></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="control-label col-sm-5">
+                </div>
+                <div class="col-sm-7">
+                    <button class="btn" type="submit" id="btn" value="Register">Register</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

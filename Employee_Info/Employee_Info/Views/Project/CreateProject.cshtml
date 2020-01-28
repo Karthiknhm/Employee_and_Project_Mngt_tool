@@ -1,0 +1,371 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <link href="~/Assert/Project-page-style.css" rel="stylesheet" />
+    <title>Create Project</title>
+    <script>
+        $(document).ready(function () {
+            function LoadtheProjectsToTable(empId) {
+                var table = $('#proTable').DataTable();
+                table.clear().draw();
+                var strurl = "getProjectDetails?empId=" + empId
+
+                $.ajax({
+                    type: "get",
+                    url: strurl,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "JSON",
+                    success: function (msg) {
+                        $.each(msg, function (index, obj) {
+                            $.each(obj, function (key, value) {
+                                $('#proTable').dataTable().fnAddData([
+                                    value.ProId,
+                                    value.TaskName,
+                                    value.strBeginDate,
+                                    value.Priority,
+                                    value.Status,
+                                    value.Resolution,
+                                    value.DescCmt,
+                                    null,
+                                    null
+                                ]);
+                            });
+                        });
+
+                    },
+                    error: function (msg) {
+                        toastr.error(msg);
+                    }
+                });
+            }
+            $(function () {
+                $("#description").css("display", "none");
+                $("#createprojectDOM").css("display", "none");
+
+                $("#begindate").datepicker({
+                    dateFormat: 'mm/dd/yy',
+                    showOn: 'button',
+                    buttonImage: "http://jqueryui.com/resources/demos/datepicker/images/calendar.gif",
+                    buttonImageOnly: true
+                });
+
+                $.ajax({
+                    type: "Get",
+                    url: "GetEmpNames",
+                    datatype: "JSON",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        for (var i = 0; i < data.length; i++) {
+                            var Employee = data[i];
+                            var id = Employee.Id;
+                            var name = Employee.Name;
+                            var opt = new Option(name, id);
+                            $("#empName").append(opt);
+                        }
+                    },
+                    error: function () {
+                        toastr.error("Error occured When loading branches!!")
+                    }
+                });
+
+                table = $('#proTable').DataTable({
+                    "columnDefs": [
+                        {
+                            "targets": [0],
+                            className: "hideCol"
+                        },
+                        {
+                            'targets': [7],
+                            'data': null,
+                            'searchable': false,
+                            'orderable': false,
+                            'defaultContent': "<button type='button' id='btnEdit' data-toggle='modal' data-backdrop='static' data-keyboard='false' data-target='#createTask'><i class='glyphicon glyphicon-pencil'></i></button>"
+                        },
+                        {
+                            'targets': [8],
+                            'data': null,
+                            'searchable': false,
+                            'orderable': false,
+                            'defaultContent': "<button type='button' data-toggle='modal' data-backdrop='static' data-keyboard='false' data-target='#DeletePro'><i class='glyphicon glyphicon-trash'></i></button>"
+                        }
+                    ]
+                });
+            });
+            var descCmt;
+            $("#btnDesc").click(function () {
+                $("#label-desc").css("display", "none");
+                $("#description").css("display", "block");
+
+                descCmt = $("#description").val();
+                if (descCmt != "") {
+                    $("#label-desc").html(descCmt);
+                }
+            });
+            $("#addPro").click(function () {
+                var empId = $("#empName").val();
+                var strurl = "IntiateProject/" + empId
+                $.ajax({
+                    type: "get",
+                    url: strurl,
+                    dataType: "JSON",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $("#holdProKey").val(data.ProId);
+                    },
+                    error: function () {
+                        toastr.error("Error occured while Data Submited!!")
+                    }
+                });
+            });
+            $("#showPro").click(function () {
+                var empId = $("#empName").val();
+                LoadtheProjectsToTable(empId);
+            });
+
+            $("#btnSubmitDetails").click(function () {
+                var strResult = "";
+                var proId = $("#holdProKey").val();
+                var taskname = $("#taskname").val();
+                var begindate = $("#begindate").val();
+                var priority = $("#priority").val();
+                var status = $("#status").val();
+                var resolution = $("#resolution").val();
+                descCmt = $("#description").val();
+                if (descCmt == "") {
+                    descCmt = $("#descLabelVal").html();
+                }
+
+                var ProjectCreation = {
+                    ProId: parseInt(proId),
+                    TaskName: taskname,
+                    BeginDate: begindate,
+                    Priority: priority,
+                    Status: status,
+                    Resolution: resolution,
+                    DescCmt: descCmt,
+                }
+                $.ajax({
+                    type: "post",
+                    url: "CreateProject",
+                    data: JSON.stringify(ProjectCreation),
+                    dataType: "Json",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data.msg == "Project Created Successfully") {
+                            toastr.success(data.msg);
+                            strResult = data.msg;
+                            var empId = $("#empName").val();
+                            if (strResult == "Project Created Successfully") {
+                                LoadtheProjectsToTable(empId);
+                            }
+                        }
+                        else {
+                            toastr.error(data.msg);
+                        }
+                    },
+                    error: function () {
+                        toastr.error("Error occured while Data Submited!!")
+                    }
+                });
+           
+                $("#createTask").modal("toggle");
+
+                return false;
+            });
+            $('#tbprojectContent').on('click', 'td', function () {
+                var tr = $(this).closest("tr");
+                var rowindex = tr.index();
+                index = rowindex;
+                var table = document.getElementById("tbprojectContent");
+                var ProId = table.rows[index].cells[0].innerHTML;
+                var TaskName = table.rows[index].cells[1].innerHTML;
+                var strBeginDate = table.rows[index].cells[2].innerHTML;
+                var Priority = table.rows[index].cells[3].innerHTML;
+                var Status = table.rows[index].cells[4].innerHTML;
+                var Resolution = table.rows[index].cells[5].innerHTML;
+                var DescCmt = table.rows[index].cells[6].innerHTML;
+                $("#holdProKey").val(ProId);
+                $("#taskname").val(TaskName);
+                $("#begindate").val(strBeginDate);
+                $("#priority").val(Priority);
+                $("#status").val(Status);
+                $("#resolution").val(Resolution);
+                $("#description").val(DescCmt);
+                $("#descLabelVal").html(DescCmt);
+            });
+            $("#btnEdit").on('click', function () {
+               
+            });
+            $("#btnDelete").click(function (event) {
+                var strResult = "";
+                var table = document.getElementById("tbprojectContent");
+                var proid = table.rows[index].cells[0].innerHTML;
+                var empId = $("#empName").val();
+                var ProjectCreation = {
+                    ProId: proid,
+                    EmpId: empId
+                }
+                $.ajax({
+                    type: "post",
+                    url: "Delete",
+                    data: JSON.stringify(ProjectCreation),
+                    dataType: "Json",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        toastr.success(data.msg);
+                        strResult = data.msg;
+                        var empId = $("#empName").val();
+                        if (strResult == "Project deleted Successfully") {
+                            LoadtheProjectsToTable(empId);
+                        }
+                    },
+                    error: function () {
+                        toastr.error("Error occured while Data Submited!!")
+                    }
+                });
+                $("#DeletePro").modal("toggle");
+
+                return false;
+            });
+           
+        });
+    </script>
+</head>
+<body>
+    <div class="container project-container">
+        <div class="row selection-control">
+            <div class="control-label col-lg-6">
+                <h3><b>The task assigned to </b> </h3>
+                <select class="form-control" id="empName" required>
+                    <option selected="selected">Select</option>
+                </select>
+                <p id="errEmpName"></p>
+            </div>
+            <div class="col-lg-3 but-add-show-pro">
+                <button id="addPro" data-toggle='modal' data-backdrop='static' data-keyboard='false' data-target='#createTask' type="submit"><i class='fas fa-clipboard'></i> Assign</button>
+            </div>
+            <div class="col-lg-3 but-add-show-pro">
+                <button id="showPro" data-toggle='modal' data-backdrop='static' data-keyboard='false' data-target='' type="submit"><i class='far fa-folder-open'></i> Projects</button>
+            </div>
+        </div>
+        <div class="modal fade" id="createTask" role="dialog">
+            <div class="modal-dialog modal-lg" style="margin-left: -30%">
+                <div class="modal-content create-model-style">
+                    <div>
+                        <input type="text" id="holdProKey" value="" style="display:none;" />
+                        <h4>
+                            <b>Project Details</b>
+                            <button type="button" style="float:right;"  class="close" data-dismiss="modal"><i class='fas fa-times-circle'></i></button>
+                        </h4>
+                        <hr />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="control-label">
+                                <label>Project Name: </label>
+                                <input type="text" id="taskname" class="form-control" maxlength="49" autocomplete="off" required />
+                                <p id="errTaskName"></p>
+                            </div>
+                            <div class="control-label">
+                                <label>Priority: </label>
+                                <select class="form-control" id="priority" required>
+                                    <option selected="selected">Select</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="hign">Hign</option>
+                                </select>
+                                <p id="errpriority"></p>
+                            </div>
+                            <div class="control-label">
+                                <label>Status: </label>
+                                <select class="form-control" id="status" required>
+                                    <option selected="selected">Select</option>
+                                    <option value="todo">To Do</option>
+                                    <option value="progress">Progress</option>
+                                    <option value="block">Block</option>
+                                </select>
+                                <p id="errstatus"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="control-label">
+                                <label>Resolution: </label>
+                                <select class="form-control" id="resolution" required>
+                                    <option selected="selected">Select</option>
+                                    <option value="unresolved">Unresolved</option>
+                                    <option value="resolved">Resolved</option>
+                                </select>
+                                <p id="errResolution"></p>
+                            </div>
+                            <div class="control-label">
+                                <label>Begin Date:</label>
+                                <input type="text" id="begindate" placeholder="mm/dd/yy" class="form-control" autocomplete="off" required>
+                                <p id="errDOB"></p>
+                            </div>
+
+                        </div>
+                    </div>
+                    <br />
+                    <div>
+                        <h4>
+                            <b>Description</b>
+                            <button type="submit" id="btnDesc"><i class='glyphicon glyphicon-pencil'></i></button>
+                            <button type="submit" id="btnSubmitDetails" value="Register"><i class='glyphicon glyphicon-floppy-saved'></i></button>
+                        </h4>
+                        <hr />
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12 description">
+                            <textarea rows="1" id="description" cols="45" required></textarea>
+                            <p id="errTaskName"></p>
+                        </div>
+                        <div id="label-desc" class="col-lg-12 label-desc">
+                            <label id="descLabelVal">Write your Description</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="table-responsive">
+            <table class="table table-hover content_table" id="proTable">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Project Name</th>
+                        <th>Begin Date</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Resolution</th>
+                        <th>Description</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="tbprojectContent"></tbody>
+            </table>
+
+        </div>
+        <div class="modal" id="DeletePro" role="dialog">
+            <div class="modal-dialog modal-sm pos-del-model">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4>Are you sure?</h4>
+                    </div>
+                    <div class="modal-body">
+                        Do you really want to delete these records
+                    </div>
+                    <div class="modal-footer">
+                        <div>
+                            <button class="btn" type="submit" id="btnDelete" value="Yes">Yes</button>
+                            <button class="btn" type="submit" data-dismiss="modal" value="No">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
