@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <link href="~/Assert/showDetailStyle.css" rel="stylesheet" />
+    <title>Employee Detail</title>
+    <script>
+        $(document).ready(function () {
+            table = $('#proTable').DataTable({
+                "columnDefs": [
+                    {
+                        "targets": [0],
+                        className: "hideCol"
+                    }
+                ]
+            });
+            var empId = GetURLParameter();
+            LoadEmployeeDetails(empId);
+            LoadEmployeeProjectDetails(empId);
+            function GetURLParameter()
+            {
+                var sPageURL = window.location.href;
+                var indexOfLastSlash = sPageURL.lastIndexOf("=");
+
+                return sPageURL.substring(indexOfLastSlash + 1, sPageURL.length)
+            }
+            function LoadEmployeeDetails(empId) {
+                var strurl = "getProjectDetails?empId=" + empId
+
+                $.ajax({
+                    type: "get",
+                    url: strurl,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "JSON",
+                    success: function (msg) {
+                        $.each(msg, function (index, obj) {
+                            $.each(obj, function (key, value) {
+                                $('#proTable').dataTable().fnAddData([
+                                    value.ProId,
+                                    value.TaskName,
+                                    value.strBeginDate,
+                                    value.Priority,
+                                    value.Status,
+                                    value.Resolution,
+                                    value.DescCmt,
+                                ]);
+                            });
+                        });
+
+                    },
+                    error: function (msg) {
+                        toastr.error(msg);
+                    }
+                });
+                
+            }
+            function LoadEmployeeProjectDetails(){
+                var strurl_EmployeeDetail = "Employee/GetEmployeeData?nEmpId=" + empId
+                $.ajax({
+                    type: "get",
+                    url: strurl_EmployeeDetail,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "JSON",
+                    success: function (data) {
+                        alert(data);
+                    },
+                    error: function (msg) {
+                        toastr.error(msg);
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <br/>
+    <div class="table-responsive">
+        <table class="table table-hover content_table" id="proTable">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Project Name</th>
+                    <th>Begin Date</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Resolution</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody id="tbprojectContent"></tbody>
+        </table>
+    </div>
+</body>
+</html>

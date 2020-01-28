@@ -183,10 +183,10 @@ namespace Employee_Info.Controllers
             });
         }
 
-        [Authorize(Roles = "Manager")]
+        //[Authorize(Roles = "Manager,Employee")]
         [HttpGet]
         //[Route("Project/getProjectDetails/{empId}")]
-        public ActionResult getProjectDetails(int empId)
+        public JsonResult getProjectDetails(int empId)
         {
             sqlCon.Open();
 
@@ -234,8 +234,6 @@ namespace Employee_Info.Controllers
                 dataReader_ProjectDetails.Close();
                 sqlCon.Close();
             }
-
-         
 
             return Json(new { msg = LSProjects }, JsonRequestBehavior.AllowGet);
         }
@@ -294,12 +292,18 @@ namespace Employee_Info.Controllers
             }
             catch (Exception e)
             {
-
+                strPassResult = e.Message;
             }
             return Json(new { 
                 msg = strPassResult,
                 url = strurl
                 });
+        }
+
+        [HttpGet]
+        public ActionResult EmployeeAllDetail(int nEmpId)
+        {
+            return View();
         }
     }
 }

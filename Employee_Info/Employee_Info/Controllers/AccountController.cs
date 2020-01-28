@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
 using Employee_Info.Models;
+using Employee_Info.Controllers;
 
 namespace Employee_Info.Controllers
 {
@@ -67,6 +68,17 @@ namespace Employee_Info.Controllers
                     else if(userRoleName == "Manager")
                     {
                         strurl = Url.Action("", "Project/CreateProject");
+                    }
+                    else if (userRoleName == "Employee")
+                    {
+                        SqlCommand select_emp_id = new SqlCommand("select Id from Tb_M_Emp where EmpName = '" + user.UserName + "'", sqlCon);
+
+                        SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(select_emp_id);
+                        DataSet Ds = new DataSet();
+                        sqlDataAdapter.Fill(Ds);
+
+                        int empid = Convert.ToInt32(Ds.Tables[0].Rows[0]["Id"]);
+                        strurl = Url.Action("", "Project/EmployeeAllDetail?nEmpId=" + empid);
                     }
                 }
                 else

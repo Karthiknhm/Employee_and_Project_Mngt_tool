@@ -33,6 +33,96 @@ namespace Employee_Info.Controllers
             return Json(new { msg = "Thank you, our team will contact you through "+ queryForm.Email});
         }
         // GET: Emp
+        public JsonResult GetEmployeeData(int nEmpID)
+        {
+            sqlCon.Open();
+
+            SqlCommand SP_M_SelectTech = new SqlCommand("SP_M_SelectTech", sqlCon);
+            SP_M_SelectTech.CommandType = CommandType.StoredProcedure;
+            SqlDataReader dataReadeTech = SP_M_SelectTech.ExecuteReader();
+
+            List<Technology> technologies = new List<Technology>();
+            while (dataReadeTech.Read())
+            {
+                Technology technology = new Technology();
+
+                technology.TechId = Convert.ToInt32(dataReadeTech["Id"]);
+                technology.TechName = dataReadeTech["TechName"].ToString();
+                technologies.Add(technology);
+            }
+            dataReadeTech.Close();
+
+            SqlCommand SP_M_SelectBranch = new SqlCommand("SP_M_SelectBranch", sqlCon);
+            SP_M_SelectBranch.CommandType = CommandType.StoredProcedure;
+            SqlDataReader dataReaderBranch = SP_M_SelectBranch.ExecuteReader();
+
+            List<Branch> branches = new List<Branch>();
+            while (dataReaderBranch.Read())
+            {
+                Branch branch = new Branch();
+
+                branch.Id = Convert.ToInt32(dataReaderBranch["Id"]);
+                branch.Name = dataReaderBranch["BranchName"].ToString();
+                branches.Add(branch);
+            }
+            dataReaderBranch.Close();
+
+            SqlCommand SelecttEmployeeDetail = new SqlCommand("select * from Tb_M_Emp where Id = " + nEmpID, sqlCon);
+            SqlDataReader dataReader = SelecttEmployeeDetail.ExecuteReader();
+
+            Employee employee = new Employee();
+            while (dataReader.Read())
+            {
+
+                employee.Id = Convert.ToInt32(dataReader["Id"]);
+                employee.Name = dataReader["EmpName"].ToString();
+                employee.Gender = dataReader["Gender"].ToString();
+                employee.DOB = Convert.ToDateTime(dataReader["DOB"].ToString());
+                string[] strMonth = new string[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+                employee.StrDOB = employee.DOB.Day + " " + strMonth[employee.DOB.Month - 1] + " " + employee.DOB.Year;
+                employee.Email = dataReader["Email"].ToString();
+                employee.Address = dataReader["EmpAddress"].ToString();
+
+                var strTechCode = dataReader["Tech"].ToString();
+                string[] CharTechCode = strTechCode.Split(',');
+                string techName = "";
+
+                for (int index = 0; index < CharTechCode.Length; index++)
+                {
+                    if (CharTechCode[index] != "")
+                    {
+                        foreach (var tech in technologies)
+                        {
+                            if (tech.TechId == Convert.ToUInt32(CharTechCode[index]))
+                            {
+                                techName += tech.TechName + ",";
+                            }
+                        }
+                    }
+                }
+                if (techName.Length > 0)
+                    employee.TechId = techName.Substring(0, techName.Length - 1);
+
+               
+                var CompanyBranchCode = dataReader["Branch"].ToString();
+                foreach (var branch in branches)
+                {
+                    if (Convert.ToInt32(CompanyBranchCode) == branch.Id)
+                        employee.CompanyBranchCode = branch.Name;
+                }
+
+                if (Convert.ToBoolean(dataReader["Marital"].ToString()))
+                    employee.MaritalStatus = "Married";
+                else
+                    employee.MaritalStatus = "Single";
+                employee.ActiveStatus = dataReader["ActiveStatus"].ToString();
+            }
+
+            sqlCon.Close();
+
+            return Json(new {data = employee }, JsonRequestBehavior.AllowGet);
+        }
+
         public JsonResult GetBranchData()
         {
             sqlCon.Open();
@@ -231,7 +321,7 @@ namespace Employee_Info.Controllers
             }
             else
             {
-                IntiateProject(employee.Email);
+                IntiateUserInPrajectMapping(employee.Email);
                 strPassResult = "This " + employee.Email + " user added succefully";
             }
             return Json(new
@@ -239,7 +329,7 @@ namespace Employee_Info.Controllers
                 msg = strPassResult
             });
         }
-        public void IntiateProject(string strEmail)
+        public void IntiateUserInPrajectMapping(string strEmail)
         {
             sqlCon.Open();
 
