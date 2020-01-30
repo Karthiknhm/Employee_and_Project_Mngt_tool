@@ -63,7 +63,6 @@
                     success: function (data) {
                         if (data.msg == "User Added Successfully") {
                             toastr.success(data.msg);
-                            window.location.href = data.url;
                         }
                         else if (data.msg == "User Name already exist") {
                             toastr.error(data.msg);

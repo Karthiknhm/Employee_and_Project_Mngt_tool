@@ -2,10 +2,15 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using Employee_Info.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using OfficeOpenXml;
 
 namespace Employee_Info.Controllers
 {
@@ -77,6 +82,10 @@ namespace Employee_Info.Controllers
                 employee.Id = Convert.ToInt32(dataReader["Id"]);
                 employee.Name = dataReader["EmpName"].ToString();
                 employee.Gender = dataReader["Gender"].ToString();
+                if (employee.Gender == "M")
+                    employee.Gender = "Male";
+                else if (employee.Gender == "F")
+                    employee.Gender = "Female";
                 employee.DOB = Convert.ToDateTime(dataReader["DOB"].ToString());
                 string[] strMonth = new string[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
                 employee.StrDOB = employee.DOB.Day + " " + strMonth[employee.DOB.Month - 1] + " " + employee.DOB.Year;
@@ -116,6 +125,7 @@ namespace Employee_Info.Controllers
                 else
                     employee.MaritalStatus = "Single";
                 employee.ActiveStatus = dataReader["ActiveStatus"].ToString();
+                employee.FilePath = dataReader["ImageFilePath"].ToString();
             }
 
             sqlCon.Close();
@@ -280,6 +290,82 @@ namespace Employee_Info.Controllers
             return Json(new { msg = lsEmp }, JsonRequestBehavior.AllowGet);
         }
 
+        [HttpPost]
+        [Route("Employee/UploadExcel")]
+        public JsonResult UploadExcel()
+        {
+            HttpPostedFileBase file = Request.Files["excelFileUpload"];
+            if (file != null)   
+            {
+                string fileName = file.FileName;
+                string fileContentType = file.ContentType;
+                byte[] fileBytes = new byte[file.ContentLength];
+                var data = file.InputStream.Read(fileBytes, 0, Convert.ToInt32(file.ContentLength));
+                using (var package = new ExcelPackage(file.InputStream))
+                {
+                    ExcelWorksheets currentSheet = package.Workbook.Worksheets;
+                    ExcelWorksheet workSheet = currentSheet.First();
+                    int noOfCol = workSheet.Dimension.End.Column;
+                    int noOfRow = workSheet.Dimension.End.Row;
+                    for (int rowIterator = 2; rowIterator <= noOfRow; rowIterator++)   
+                    {
+                        Employee employee = new Employee();
+
+                        employee.Name = workSheet.Cells[rowIterator, 1].Value.ToString();
+                        employee.Gender = workSheet.Cells[rowIterator, 2].Value.ToString();
+                        DateTime conv = DateTime.FromOADate(Convert.ToDouble(workSheet.Cells[rowIterator, 3].Value));
+                        employee.DOB = Convert.ToDateTime(conv);
+                        employee.Email = workSheet.Cells[rowIterator, 4].Value.ToString();
+                        employee.Address = workSheet.Cells[rowIterator, 5].Value.ToString();
+                        employee.TechId = workSheet.Cells[rowIterator, 6].Value.ToString();
+                        employee.CompanyBranchCode = workSheet.Cells[rowIterator, 7].Value.ToString();
+                        employee.MaritalStatus = workSheet.Cells[rowIterator, 8].Value.ToString();
+                        employee.FilePath = workSheet.Cells[rowIterator, 9].Value.ToString();
+                        sqlCon.Open();
+
+                        SqlCommand SP_M_InsertUser = new SqlCommand("SP_M_InsertUser", sqlCon);
+                        SP_M_InsertUser.CommandType = CommandType.StoredProcedure;
+
+                        SP_M_InsertUser.Parameters.AddWithValue("@EmpName", employee.Name);
+                        SP_M_InsertUser.Parameters.AddWithValue("@Gender", employee.Gender);
+                        SP_M_InsertUser.Parameters.AddWithValue("@DOB", employee.DOB);
+                        SP_M_InsertUser.Parameters.AddWithValue("@Email", employee.Email);
+                        SP_M_InsertUser.Parameters.AddWithValue("@EmpAddress", employee.Address);
+                        SP_M_InsertUser.Parameters.AddWithValue("@Tech", employee.TechId);
+                        SP_M_InsertUser.Parameters.AddWithValue("@Branch", employee.CompanyBranchCode);
+                        SP_M_InsertUser.Parameters.AddWithValue("@Marital", employee.MaritalStatus);
+                        SP_M_InsertUser.Parameters.AddWithValue("@ImageFilePath", employee.FilePath);
+                        SP_M_InsertUser.Parameters.AddWithValue("@EmpDelete", false);
+                        SP_M_InsertUser.Parameters.AddWithValue("@ActiveStatus", "Active");
+
+                        SqlDataReader sqlData = SP_M_InsertUser.ExecuteReader();
+                        string strresult = "";
+                        while (sqlData.Read())
+                        {
+                            strresult = sqlData["result"].ToString();
+                        }
+
+                        sqlCon.Close();
+
+                        string strPassResult;
+                        if (strresult == "AlreadyExist")
+                        {
+                            strPassResult = "This " + employee.Email + " user already Exist";
+                        }
+                        else
+                        {
+                            IntiateUserInPrajectMapping(employee.Email);
+                            strPassResult = "This " + employee.Email + " user added succefully";
+                        }
+                        return Json(new
+                        {
+                            msg = strPassResult
+                        });
+                    }
+                }
+            }
+            return Json(null);
+        }
         [Authorize(Roles = "Admin")]
         public ActionResult Create()
         {
@@ -287,8 +373,22 @@ namespace Employee_Info.Controllers
         }
 
         [HttpPost]
-        public ActionResult Create(Employee employee)
+        public ActionResult Create(FormCollection formCollection)
         {
+            HttpPostedFileBase df = Request.Files["FileUpload"];
+            string StrEmployeeJson = formCollection["Employee"];
+
+            Employee employee = JsonConvert.DeserializeObject<Employee>(StrEmployeeJson);
+            string path = "";
+            for (int i = 0; i < Request.Files.Count; i++)
+            {
+                var file = Request.Files[i];
+                var fileName = Path.GetFileName(file.FileName);
+                path = Path.Combine(Server.MapPath("~/App_Data/"), fileName);
+                file.SaveAs(path);
+            }
+            employee.FilePath = path;
+
             sqlCon.Open();
 
             SqlCommand SP_M_InsertUser = new SqlCommand("SP_M_InsertUser", sqlCon);
@@ -302,6 +402,7 @@ namespace Employee_Info.Controllers
             SP_M_InsertUser.Parameters.AddWithValue("@Tech", employee.TechId);
             SP_M_InsertUser.Parameters.AddWithValue("@Branch", employee.CompanyBranchCode);
             SP_M_InsertUser.Parameters.AddWithValue("@Marital", employee.MaritalStatus);
+            SP_M_InsertUser.Parameters.AddWithValue("@ImageFilePath", employee.FilePath);
             SP_M_InsertUser.Parameters.AddWithValue("@EmpDelete", false);
             SP_M_InsertUser.Parameters.AddWithValue("@ActiveStatus", "Active");
 

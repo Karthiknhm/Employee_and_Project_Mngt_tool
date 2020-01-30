@@ -85,7 +85,7 @@
                            @(ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "activeClass" : "")"
                                href="http://localhost:50183/Employee/Index">AWS</a>
                         </li>
-                        if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+                        if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item nav-pos">
                                 <a id="DetailsNav" class="nav-link js-scroll-trigger
@@ -98,7 +98,15 @@
                             <li class="nav-item nav-pos">
                                 <a id="AboutNav" class="nav-link js-scroll-trigger
                                 @(ViewContext.RouteData.Values["Action"].ToString() == "CreateProject" ? "activeClass" : "")"
-                                    href="http://localhost:50183/Project/CreateProject">Project</a>
+                                   href="http://localhost:50183/Project/CreateProject">Project</a>
+                            </li>
+                        }
+                        if (User.IsInRole("Employee"))
+                        {
+                            <li class="nav-item nav-pos">
+                                <a id="AboutNav" class="nav-link js-scroll-trigger
+                                @(ViewContext.RouteData.Values["Action"].ToString() == "EmployeeAllDetail" ? "activeClass" : "")"
+                                   href="@Html.Raw(Html.AttributeEncode(ViewBag.DetailURL))">Personel Detail</a>
                             </li>
                         }
                         <li class="nav-item nav-pos">
@@ -130,6 +138,14 @@
                 <ul class="navbar-nav ml-auto" style="float:right !important">
                     @if (User.Identity.IsAuthenticated)
                     {
+                        if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a id="LoginNav" class="nav-link js-scroll-trigger
+                               @(ViewContext.RouteData.Values["Action"].ToString() == "Register" ? "activeClass" : "")"
+                                   href="http://localhost:50183/Account/Register"><i class='fas fa-user-plus'></i> Add User</a>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a id="LoginNav" class="nav-link js-scroll-trigger
                            @(ViewContext.RouteData.Values["Action"].ToString() == "Login" ? "activeClass" : "")"

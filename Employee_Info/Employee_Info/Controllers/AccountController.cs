@@ -51,9 +51,8 @@ namespace Employee_Info.Controllers
             try
             {
                 bool IsValidUser = _dbContext.Tb_M_User
-                .Any(u => u.UserName.ToLower() == user
-                .UserName.ToLower() && user
-                .Uspassword == user.Uspassword);
+                .Any(u => u.UserName.ToLower() == user.UserName.ToLower() && 
+                u.Uspassword == user.Uspassword);
 
                 if (IsValidUser)
                 {
@@ -78,7 +77,9 @@ namespace Employee_Info.Controllers
                         sqlDataAdapter.Fill(Ds);
 
                         int empid = Convert.ToInt32(Ds.Tables[0].Rows[0]["Id"]);
-                        strurl = Url.Action("", "Project/EmployeeAllDetail?nEmpId=" + empid);
+                        strurl = string.Format("/Project/EmployeeAllDetail?nEmpId={0}", empid);
+                        var hrefurl = string.Format("http://localhost:50183/Project/EmployeeAllDetail?nEmpId={0}", empid);
+                        ViewBag.DetailURL = hrefurl;
                     }
                 }
                 else
@@ -110,18 +111,16 @@ namespace Employee_Info.Controllers
         [HttpPost]
         public ActionResult Register(Tb_M_User registerUser)
             {
-            string strmsg = "", strurl = "";
+            string strmsg = "";
             try
             {
                 bool bIsExist = _dbContext.Tb_M_User.Any(u => u.UserName == registerUser.UserName);
                 if (bIsExist)
                 {
                     strmsg = "User Name already exist";
-                    strurl = Url.Action("", "");
                     return Json(new
                     {
                         msg = strmsg,
-                        url = strurl
                     }, JsonRequestBehavior.AllowGet);
                 }
                 _dbContext.Tb_M_User.Add(registerUser);
@@ -129,12 +128,10 @@ namespace Employee_Info.Controllers
                 if (result > 0)
                 {
                     strmsg = "User Added Successfully";
-                    strurl = Url.Action("", "Account/Login");
                 }
                 else
                 {
                     strmsg = "User not added Successfully";
-                    strurl = Url.Action("", "");
                 }
             }
             catch (Exception e)
@@ -144,10 +141,8 @@ namespace Employee_Info.Controllers
             return Json(new
             {
                 msg = strmsg,
-                url = strurl
             }, JsonRequestBehavior.AllowGet);
 
-            return View();
         }
         public ActionResult Logout()
         {

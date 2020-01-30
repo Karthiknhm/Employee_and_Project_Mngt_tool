@@ -31,6 +31,10 @@ namespace Employee_Info.Models
 
 		public bool isDeleted { get; set; }
 
+        public string FilePath { get; set; }
+
+        public HttpPostedFileBase ImageFile { get; set; }
+
 	}
 
 	public class Technology

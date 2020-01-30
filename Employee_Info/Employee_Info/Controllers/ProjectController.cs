@@ -185,7 +185,6 @@ namespace Employee_Info.Controllers
 
         //[Authorize(Roles = "Manager,Employee")]
         [HttpGet]
-        //[Route("Project/getProjectDetails/{empId}")]
         public JsonResult getProjectDetails(int empId)
         {
             sqlCon.Open();
@@ -300,6 +299,7 @@ namespace Employee_Info.Controllers
                 });
         }
 
+        [Authorize(Roles = "Employee")]
         [HttpGet]
         public ActionResult EmployeeAllDetail(int nEmpId)
         {

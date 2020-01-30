@@ -29,6 +29,13 @@ button {
     transition: all 0.3s ease 0s;
 }
 
+#usrImg{
+    width:25%;
+    margin-left:250px;
+}
+
+
+
 .content_table {
     border-collapse: collapse;
     margin: 12px 0;
