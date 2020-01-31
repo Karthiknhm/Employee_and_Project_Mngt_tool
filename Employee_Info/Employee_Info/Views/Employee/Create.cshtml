@@ -95,17 +95,17 @@
                 validateName("withErrText");
             });
             function validateName(str) {
-                    if ($("#name").val().length >= 1) {
-                        $("#errName").html("");
-                        BoolName = true;
+                if ($("#name").val().length >= 1) {
+                    $("#errName").html("");
+                    BoolName = true;
+                }
+                else {
+                    if (str == "withErrText") {
+                        $("#errName").text("Name field required");
+                        $("#errName").addClass("errormsg");
                     }
-                    else {
-                        if (str == "withErrText") {
-                            $("#errName").text("Name field required");
-                            $("#errName").addClass("errormsg");
-                        }
-                        BoolName = false;
-                    }
+                    BoolName = false;
+                }
             }
 
 
@@ -130,7 +130,7 @@
             });
             function validateGender(str) {
                 var gender = $("input[name='gender']:checked").val();
-               
+
                 if (gender == undefined) {
                     if (str == "withErrText") {
                         $("#errGender").text("Select Gender");
@@ -142,7 +142,7 @@
                     $("#errGender").html("");
                     BoolGender = true;
                 }
-              
+
             }
 
 
@@ -161,21 +161,21 @@
             });
             function validateDOB(str) {
                 var dobValue = new Date($('#bday').val());
-                
+
                 if (($('#bday').val().toString().length == 0)) {
                     if (str == "withErrText") {
                         $("#errDOB").text("Date of birth field required");
                         $("#errDOB").addClass("errormsg");
                     }
                     BoolDOB = false;
-                    }
+                }
                 else if (($('#bday').val().toString().length < 10)) {
                     if (str == "withErrText") {
                         $("#errDOB").text("Invalid date");
                         $("#errDOB").addClass("errormsg");
                     }
-                     BoolDOB = false;
-                    }
+                    BoolDOB = false;
+                }
                 else if (dobValue.getFullYear() >= today.getFullYear() - 18 && dobValue.getMonth() >= today.getMonth() && dobValue.getDate() > today.getDate()) {
                     if (str == "withErrText") {
                         $("#errDOB").text("Must be 18 years old");
@@ -187,7 +187,7 @@
                     $("#errDOB").html("");
                     BoolDOB = true;
                 }
-                
+
             }
 
 
@@ -223,7 +223,7 @@
                     }
                     BoolEmail = false;
                 }
-             
+
             }
 
 
@@ -283,7 +283,7 @@
                     $("#errTech").html("");
                     BoolTech = true;
                 }
-             
+
             }
 
 
@@ -308,7 +308,7 @@
                     $("#errBranch").html("");
                     BoolBranch = true;
                 }
-             
+
             }
 
 
@@ -390,7 +390,7 @@
                 var branch = $('#branch').val();
                 var marital = $("input[name='marital']:checked").val();
                 var formData = new FormData();
-              
+
 
                 if (BoolName && BoolGender && BoolDOB && BoolEmail && BoolAdr && BoolTech && BoolBranch && BoolMarital) {
                     event.preventDefault();
@@ -473,12 +473,12 @@
                 $(this).addClass("active");
             });
         });
-       
+
     </script>
 </head>
 <body>
     <div class="create-title">
-        <button data-toggle='modal' data-backdrop='static' data-keyboard='false' data-target='#excelUploadmodel' style="float:right"><i class='far fa-folder-open'></i> Upload from excel</button>
+        <button data-toggle='modal' data-backdrop='static' data-keyboard='false' data-target='#excelUploadmodel' style="float:right"><i class='fa fa-upload'></i> Upload from excel</button>
         <a style="float:right" href="~/Employee/Details"><button><i class='far fa-folder-open'></i> All Employee</button></a>
         <h2><i class='far fa-address-book' style='font-size:36px'></i> Create Employee</h2>
     </div>
@@ -604,7 +604,7 @@
                     <input type="file" id="excelFileUpload" name="UploadedFile" />
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" id="btnUploadExcel" name="Submit"> Submit </button>
+                    <button type="submit" id="btnUploadExcel" name="Submit"><i class='glyphicon glyphicon-upload'></i>  Upload </button>
                 </div>
             </div>
         </div>

@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Script.Serialization;
+using System.Web.UI;
 using Employee_Info.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 
 namespace Employee_Info.Controllers
 {
@@ -179,6 +183,63 @@ namespace Employee_Info.Controllers
             sqlCon.Close();
 
             return Json(technologies, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public ActionResult DownloadExcel()
+        {
+            ExcelPackage Ep = new ExcelPackage();
+            ExcelWorksheet Sheet = Ep.Workbook.Worksheets.Add("Report");
+            Sheet.Cells["A1"].Value = "Name";
+            Sheet.Cells["B1"].Value = "Gender";
+            Sheet.Cells["C1"].Value = "Date of Birth";
+            Sheet.Cells["D1"].Value = "Email";
+            Sheet.Cells["E1"].Value = "Address";
+            Sheet.Cells["F1"].Value = "Technology";
+            Sheet.Cells["G1"].Value = "Branch";
+            Sheet.Cells["H1"].Value = "Marital";
+            Sheet.Cells["I1"].Value = "Active";
+            Sheet.Cells["A1:I1"].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+            Sheet.Cells["A1:I1"].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(129, 212, 26));
+            Sheet.Cells["A1:I1"].Style.Font.Color.SetColor(Color.Brown);
+            Sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+            Sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+            Sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+            Sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+
+            int row = 2;
+
+            JsonResult jsonResultOfAllEmployeeDetail = GetAllEmployee();
+            string jsonSTRINGtOfAllEmployeeDetailWith_Key_msg = new JavaScriptSerializer().Serialize(jsonResultOfAllEmployeeDetail.Data);
+            JObject obj = JObject.Parse(jsonSTRINGtOfAllEmployeeDetailWith_Key_msg);
+            string jsonSTRINGtOfAllEmployeeDetail = obj["msg"].ToString();
+
+            List<Employee> ListOfAllEmployeeDetail = JsonConvert.DeserializeObject<List<Employee>>(jsonSTRINGtOfAllEmployeeDetail);
+            foreach (var employee in ListOfAllEmployeeDetail)
+            {
+                Sheet.Cells[string.Format("A{0}", row)].Value = employee.Name;
+                Sheet.Cells[string.Format("B{0}", row)].Value = employee.Gender;
+                Sheet.Cells[string.Format("C{0}", row)].Value = employee.StrDOB;
+                Sheet.Cells[string.Format("D{0}", row)].Value = employee.Email;
+                Sheet.Cells[string.Format("E{0}", row)].Value = employee.Address;
+                Sheet.Cells[string.Format("F{0}", row)].Value = employee.TechId;
+                Sheet.Cells[string.Format("G{0}", row)].Value = employee.CompanyBranchCode;
+                Sheet.Cells[string.Format("H{0}", row)].Value = employee.MaritalStatus;
+                Sheet.Cells[string.Format("I{0}", row)].Value = employee.ActiveStatus;
+                row++;
+            }
+            row = row - 1;
+            Color colFromHex = ColorTranslator.FromHtml("#B7DEE8");
+            Sheet.Cells["A2:I" + row].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+            Sheet.Cells["A2:I" + row].Style.Fill.BackgroundColor.SetColor(colFromHex);
+
+            Response.Clear();
+            Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            Response.AddHeader("content-disposition", "attachment: filename=" + "Report.xlsx");
+            Response.BinaryWrite(Ep.GetAsByteArray());
+            Response.End();
+
+            return View();
         }
 
         public JsonResult GetAllEmployee()

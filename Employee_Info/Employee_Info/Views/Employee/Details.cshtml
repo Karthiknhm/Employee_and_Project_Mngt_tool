@@ -495,8 +495,6 @@
                     BoolMarital = true;
                 }
             }
-
-
             $("#btn").click(function (event) {
                 var name = $("#name").val();
                 var gender = $("input[name='gender']:checked").val();
@@ -594,6 +592,7 @@
 </head>
 <body>
     <div class="details-title">
+        <a href="~/Employee/DownloadExcel"><button style="float: right;"><i class='glyphicon glyphicon-save-file'> </i> Export</button></a>
         <a style="float: right;" href="~/Employee/Create"><button><i class='fas fa-user-plus'> </i> Add Employee</button></a>
         <h2><i class='fas fa-users' style='font-size:36px'></i> Employees</h2>
     </div>

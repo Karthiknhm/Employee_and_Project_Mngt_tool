@@ -64,7 +64,12 @@
                     dataType: "JSON",
                     success: function (data) {
                         $.each(data, function (index, val) {
-                            $("#showAllDetail img").attr("src", val.FilePath);
+                            if (val.FilePath != "") {
+                                $("#showAllDetail img").attr("src", val.FilePath);
+                            }
+                            else if (val.Gender == "Female") {
+                                $("#showAllDetail img").attr("src", "https://www.freeiconspng.com/uploads/businesswoman-female-icon-19.png");
+                            }
                             $("#name").html(val.Name);
                             $("#dob").html(val.StrDOB);
                             $("#gender").html(val.Gender);
