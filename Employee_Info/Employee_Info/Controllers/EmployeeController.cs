@@ -355,20 +355,25 @@ namespace Employee_Info.Controllers
         [Route("Employee/UploadExcel")]
         public JsonResult UploadExcel()
         {
+            string strresult = "", strPassResult = "";
             HttpPostedFileBase file = Request.Files["excelFileUpload"];
+
             if (file != null)   
             {
                 string fileName = file.FileName;
                 string fileContentType = file.ContentType;
                 byte[] fileBytes = new byte[file.ContentLength];
                 var data = file.InputStream.Read(fileBytes, 0, Convert.ToInt32(file.ContentLength));
+
+                List<Employee> ReturnedByUploadedData = new List<Employee> { };
+
                 using (var package = new ExcelPackage(file.InputStream))
                 {
                     ExcelWorksheets currentSheet = package.Workbook.Worksheets;
                     ExcelWorksheet workSheet = currentSheet.First();
                     int noOfCol = workSheet.Dimension.End.Column;
                     int noOfRow = workSheet.Dimension.End.Row;
-                    for (int rowIterator = 2; rowIterator <= noOfRow; rowIterator++)   
+                    for (int rowIterator = 2; rowIterator <= noOfRow; rowIterator++)
                     {
                         Employee employee = new Employee();
 
@@ -382,51 +387,154 @@ namespace Employee_Info.Controllers
                         employee.CompanyBranchCode = workSheet.Cells[rowIterator, 7].Value.ToString();
                         employee.MaritalStatus = workSheet.Cells[rowIterator, 8].Value.ToString();
                         employee.FilePath = workSheet.Cells[rowIterator, 9].Value.ToString();
-                        sqlCon.Open();
-
-                        SqlCommand SP_M_InsertUser = new SqlCommand("SP_M_InsertUser", sqlCon);
-                        SP_M_InsertUser.CommandType = CommandType.StoredProcedure;
-
-                        SP_M_InsertUser.Parameters.AddWithValue("@EmpName", employee.Name);
-                        SP_M_InsertUser.Parameters.AddWithValue("@Gender", employee.Gender);
-                        SP_M_InsertUser.Parameters.AddWithValue("@DOB", employee.DOB);
-                        SP_M_InsertUser.Parameters.AddWithValue("@Email", employee.Email);
-                        SP_M_InsertUser.Parameters.AddWithValue("@EmpAddress", employee.Address);
-                        SP_M_InsertUser.Parameters.AddWithValue("@Tech", employee.TechId);
-                        SP_M_InsertUser.Parameters.AddWithValue("@Branch", employee.CompanyBranchCode);
-                        SP_M_InsertUser.Parameters.AddWithValue("@Marital", employee.MaritalStatus);
-                        SP_M_InsertUser.Parameters.AddWithValue("@ImageFilePath", employee.FilePath);
-                        SP_M_InsertUser.Parameters.AddWithValue("@EmpDelete", false);
-                        SP_M_InsertUser.Parameters.AddWithValue("@ActiveStatus", "Active");
-
-                        SqlDataReader sqlData = SP_M_InsertUser.ExecuteReader();
-                        string strresult = "";
-                        while (sqlData.Read())
+                        if (employee.Name == null)
                         {
-                            strresult = sqlData["result"].ToString();
+                            employee.ExcelUploadStatus = "Name field required";
                         }
-
-                        sqlCon.Close();
-
-                        string strPassResult;
-                        if (strresult == "AlreadyExist")
+                        else if (employee.Gender == null)
                         {
-                            strPassResult = "This " + employee.Email + " user already Exist";
+                            employee.ExcelUploadStatus = "Gender field required";
+                        }
+                        else if (conv == null)
+                        {
+                            employee.ExcelUploadStatus = "Date of birth field required";
+                        }
+                        else if (employee.Email == null)
+                        {
+                            employee.ExcelUploadStatus = "Email field required";
+                        }
+                        else if (employee.Gender == null)
+                        {
+                            employee.ExcelUploadStatus = "Gender field required";
+                        }
+                        else if (employee.Address == null)
+                        {
+                            employee.ExcelUploadStatus = "Address field required";
+                        }
+                        else if (employee.TechId == null)
+                        {
+                            employee.ExcelUploadStatus = "Technology field required";
+                        }
+                        else if (employee.CompanyBranchCode == null)
+                        {
+                            employee.ExcelUploadStatus = "Branch field required";
+                        }
+                        else if (employee.MaritalStatus == null)
+                        {
+                            employee.ExcelUploadStatus = "Marital Status field required";
                         }
                         else
                         {
-                            IntiateUserInPrajectMapping(employee.Email);
-                            strPassResult = "This " + employee.Email + " user added succefully";
+                            sqlCon.Open();
+
+                            SqlCommand SP_M_InsertUser = new SqlCommand("SP_M_InsertUser", sqlCon);
+                            SP_M_InsertUser.CommandType = CommandType.StoredProcedure;
+
+                            SP_M_InsertUser.Parameters.AddWithValue("@EmpName", employee.Name);
+                            SP_M_InsertUser.Parameters.AddWithValue("@Gender", employee.Gender);
+                            SP_M_InsertUser.Parameters.AddWithValue("@DOB", employee.DOB);
+                            SP_M_InsertUser.Parameters.AddWithValue("@Email", employee.Email);
+                            SP_M_InsertUser.Parameters.AddWithValue("@EmpAddress", employee.Address);
+                            SP_M_InsertUser.Parameters.AddWithValue("@Tech", employee.TechId);
+                            SP_M_InsertUser.Parameters.AddWithValue("@Branch", employee.CompanyBranchCode);
+                            SP_M_InsertUser.Parameters.AddWithValue("@Marital", employee.MaritalStatus);
+                            SP_M_InsertUser.Parameters.AddWithValue("@ImageFilePath", employee.FilePath);
+                            SP_M_InsertUser.Parameters.AddWithValue("@EmpDelete", false);
+                            SP_M_InsertUser.Parameters.AddWithValue("@ActiveStatus", "Active");
+
+                            SqlDataReader sqlData = SP_M_InsertUser.ExecuteReader();
+                            while (sqlData.Read())
+                            {
+                                strresult = sqlData["result"].ToString();
+                            }
+                            sqlCon.Close();
+
+                            if (strresult == "AlreadyExist")
+                            {
+                                strPassResult = "This " + employee.Email + " user already Exist";
+                                employee.ExcelUploadStatus = "User Already Exist";
+                                ReturnedByUploadedData.Add(employee);
+
+                            }
+                            else
+                            {
+                                IntiateUserInPrajectMapping(employee.Email);
+                                strPassResult = "This " + employee.Email + " user added succefully";
+                                employee.ExcelUploadStatus = "User Added Success";
+                                ReturnedByUploadedData.Add(employee);
+                            }
                         }
-                        return Json(new
-                        {
-                            msg = strPassResult
-                        });
                     }
                 }
+
+                //Generate excel for uploaded data
+
+                ExcelPackage Ep = new ExcelPackage();
+                ExcelWorksheet Sheet = Ep.Workbook.Worksheets.Add("Report");
+                Sheet.Cells["A1"].Value = "Name";
+                Sheet.Cells["B1"].Value = "Gender";
+                Sheet.Cells["C1"].Value = "Date of Birth";
+                Sheet.Cells["D1"].Value = "Email";
+                Sheet.Cells["E1"].Value = "Address";
+                Sheet.Cells["F1"].Value = "Technology";
+                Sheet.Cells["G1"].Value = "Branch";
+                Sheet.Cells["H1"].Value = "Marital";
+                Sheet.Cells["I1"].Value = "Active";
+                Sheet.Cells["J1"].Value = "Status of Process";
+                Sheet.Cells["A1:j1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                Sheet.Cells["A1:j1"].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(129, 212, 26));
+                Sheet.Cells["A1:j1"].Style.Font.Color.SetColor(Color.Brown);
+                Sheet.Cells.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                Sheet.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                Sheet.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                Sheet.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                int row = 2;
+
+                foreach (var employee in ReturnedByUploadedData)
+                {
+                    Sheet.Cells[string.Format("A{0}", row)].Value = employee.Name;
+                    Sheet.Cells[string.Format("B{0}", row)].Value = employee.Gender;
+                    Sheet.Cells[string.Format("C{0}", row)].Value = employee.StrDOB;
+                    Sheet.Cells[string.Format("D{0}", row)].Value = employee.Email;
+                    Sheet.Cells[string.Format("E{0}", row)].Value = employee.Address;
+                    Sheet.Cells[string.Format("F{0}", row)].Value = employee.TechId;
+                    Sheet.Cells[string.Format("G{0}", row)].Value = employee.CompanyBranchCode;
+                    Sheet.Cells[string.Format("H{0}", row)].Value = employee.MaritalStatus;
+                    Sheet.Cells[string.Format("I{0}", row)].Value = employee.ActiveStatus;
+                    Sheet.Cells[string.Format("J{0}", row)].Value = employee.ExcelUploadStatus;
+                    row++;
+                }
+                Sheet.Column(1).AutoFit();
+                Sheet.Column(2).AutoFit();
+                Sheet.Column(3).AutoFit();
+                Sheet.Column(5).AutoFit();
+                Sheet.Column(6).AutoFit();
+                Sheet.Column(7).AutoFit();
+                Sheet.Column(8).AutoFit();
+                Sheet.Column(9).AutoFit();
+                Sheet.Column(10).AutoFit();
+
+                row = row - 1;
+                Color colFromHex = ColorTranslator.FromHtml("#B7DEE8");
+                Sheet.Cells["A2:I" + row].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                Sheet.Cells["A2:I" + row].Style.Fill.BackgroundColor.SetColor(colFromHex);
+
+                var filePath = System.Web.Hosting.HostingEnvironment.MapPath("~/SourceExcel/" + "StatusOfUploadData.xlsx");
+                FileInfo excelFile = new FileInfo(@filePath);
+                Ep.SaveAs(excelFile);
+                Response.End();
             }
             return Json(null);
         }
+
+        public FileResult DownloadexcelAutomatic()
+        {
+            byte[] fileBytes = System.IO.File.ReadAllBytes(@"E:\Sivaramkumar\Git\Employee_Info\Employee_Info\SourceExcel\StatusOfUploadData.xlsx");
+            string fileName = "StatusOfUploadData.xlsx";
+
+            return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
+        }
+
         [Authorize(Roles = "Admin")]
         public ActionResult Create()
         {
@@ -436,7 +544,7 @@ namespace Employee_Info.Controllers
         [HttpPost]
         public ActionResult Create(FormCollection formCollection)
         {
-            HttpPostedFileBase df = Request.Files["FileUpload"];
+            HttpPostedFileBase ImageFile = Request.Files["FileUpload"];
             string StrEmployeeJson = formCollection["Employee"];
 
             Employee employee = JsonConvert.DeserializeObject<Employee>(StrEmployeeJson);

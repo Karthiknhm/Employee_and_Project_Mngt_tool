@@ -33,7 +33,7 @@ namespace Employee_Info.Models
 
         public string FilePath { get; set; }
 
-        public HttpPostedFileBase ImageFile { get; set; }
+        public string ExcelUploadStatus { get; set; }
 
 	}
 

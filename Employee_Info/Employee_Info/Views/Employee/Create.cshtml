@@ -347,35 +347,7 @@
                 }
             }
 
-            $("#btnUploadExcel").click(function () {
-                var formData = new FormData();
-                var file = document.getElementById("excelFileUpload").files[0];
-                formData.append("ExcelFileUpload", file);
-
-                $.ajax({
-                    type: "post",
-                    url: "UploadExcel",
-                    data: formData,
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function (data) {
-                        if ("This " + email + " user already Exist" == data.msg) {
-                            toastr.info(data.msg);
-                        }
-                        else {
-                            window.location.replace("http://localhost:50183/Employee/Details");
-                            toastr.success(data.msg);
-                        }
-                    },
-                    error: function () {
-                        toastr.error("Error occured while Data Submited!!")
-                    }
-                });
-                return false;
-            });
-
-
+        
             $("#btn").click(function (event) {
                 var name = $("#name").val();
                 var gender = $("input[name='gender']:checked").val();
@@ -478,8 +450,7 @@
 </head>
 <body>
     <div class="create-title">
-        <button data-toggle='modal' data-backdrop='static' data-keyboard='false' data-target='#excelUploadmodel' style="float:right"><i class='fa fa-upload'></i> Upload from excel</button>
-        <a style="float:right" href="~/Employee/Details"><button><i class='far fa-folder-open'></i> All Employee</button></a>
+        <a style="float:right" href="~/Employee/Details"><button><i class='far fa-folder-open'></i>Back to All Employee</button></a>
         <h2><i class='far fa-address-book' style='font-size:36px'></i> Create Employee</h2>
     </div>
     <hr />
@@ -592,22 +563,6 @@
                 </div>
             </div>
         </form>
-    </div>
-    <div class="modal" id="excelUploadmodel" role="dialog">
-        <div class="modal-dialog modal-sm  pos-del-model">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4>Upload Your excel file</h4>
-                    <button type="button" class="close" id="clrModel" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <input type="file" id="excelFileUpload" name="UploadedFile" />
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" id="btnUploadExcel" name="Submit"><i class='glyphicon glyphicon-upload'></i>  Upload </button>
-                </div>
-            </div>
-        </div>
     </div>
 </body>
 </html>
