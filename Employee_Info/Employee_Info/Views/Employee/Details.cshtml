@@ -510,14 +510,14 @@
                     processData: false,
                     success: function (data) {
                         toastr.success("Data Submited!!")
-                        window.location.href = "http://localhost:50183/Employee/DownloadexcelAutomatic";
+                       // window.location.href = "http://localhost:50183/Employee/DownloadexcelAutomatic";
                     },
                     error: function () {
                         toastr.error("Error occured while Data Submited!!")
                     }
                 });
 
-                $("#btndownloadexcelAuto").trigger('click');
+                $("#btndownloadexcelAuto")[0].click();
                 return false;
             });
 

@@ -390,38 +390,47 @@ namespace Employee_Info.Controllers
                         if (employee.Name == null)
                         {
                             employee.ExcelUploadStatus = "Name field required";
+                            ReturnedByUploadedData.Add(employee);
                         }
                         else if (employee.Gender == null)
                         {
                             employee.ExcelUploadStatus = "Gender field required";
+                            ReturnedByUploadedData.Add(employee);
                         }
                         else if (conv == null)
                         {
                             employee.ExcelUploadStatus = "Date of birth field required";
+                            ReturnedByUploadedData.Add(employee);
                         }
                         else if (employee.Email == null)
                         {
                             employee.ExcelUploadStatus = "Email field required";
+                            ReturnedByUploadedData.Add(employee);
                         }
                         else if (employee.Gender == null)
                         {
                             employee.ExcelUploadStatus = "Gender field required";
+                            ReturnedByUploadedData.Add(employee);
                         }
                         else if (employee.Address == null)
                         {
                             employee.ExcelUploadStatus = "Address field required";
+                            ReturnedByUploadedData.Add(employee);
                         }
                         else if (employee.TechId == null)
                         {
                             employee.ExcelUploadStatus = "Technology field required";
+                            ReturnedByUploadedData.Add(employee);
                         }
                         else if (employee.CompanyBranchCode == null)
                         {
                             employee.ExcelUploadStatus = "Branch field required";
+                            ReturnedByUploadedData.Add(employee);
                         }
                         else if (employee.MaritalStatus == null)
                         {
                             employee.ExcelUploadStatus = "Marital Status field required";
+                            ReturnedByUploadedData.Add(employee);
                         }
                         else
                         {
@@ -446,6 +455,7 @@ namespace Employee_Info.Controllers
                             while (sqlData.Read())
                             {
                                 strresult = sqlData["result"].ToString();
+                                IntiateUserInPrajectMapping(employee.Email);
                             }
                             sqlCon.Close();
 
