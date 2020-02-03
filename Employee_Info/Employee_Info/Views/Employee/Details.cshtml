@@ -510,14 +510,14 @@
                     processData: false,
                     success: function (data) {
                         toastr.success("Data Submited!!")
-                       // window.location.href = "http://localhost:50183/Employee/DownloadexcelAutomatic";
+                        window.location.href = "http://localhost:50183/Employee/DownloadexcelAutomatic";
                     },
                     error: function () {
                         toastr.error("Error occured while Data Submited!!")
                     }
                 });
 
-                $("#btndownloadexcelAuto")[0].click();
+                $('#excelUploadmodel').modal('toggle');
                 return false;
             });
 
@@ -619,10 +619,11 @@
 </head>
 <body>
     <div class="details-title">
-        <a href="~/Employee/DownloadExcel"><button style="float: right;"><i class='glyphicon glyphicon-save-file'> </i> Export</button></a>
         <a href="~/Employee/DownloadexcelAutomatic" id="btndownloadexcelAuto" style="display:none;">DownloadexcelAutomatic</a>
-        <button data-toggle='modal' data-backdrop='static' data-keyboard='false' data-target='#excelUploadmodel' style="float:right"><i class='fa fa-upload'></i> Upload from excel</button>
-        <a style="float: right;" href="~/Employee/Create"><button><i class='fas fa-user-plus'> </i> Add Employee</button></a>
+
+        <a class="btn-pos-details-head" href="~/Employee/DownloadExcel"><button><i class='glyphicon glyphicon-save-file'> </i> Export</button></a>
+        <button class="btn-pos-details-head" data-toggle='modal' data-backdrop='static' data-keyboard='false' data-target='#excelUploadmodel'><i class='fa fa-upload'></i> Upload from excel</button>
+        <a class="btn-pos-details-head" href="~/Employee/Create"><button><i class='fas fa-user-plus'> </i> Add Employee</button></a>
         <h2><i class='fas fa-users' style='font-size:36px'></i> Employees</h2>
     </div>
     <div class="table-responsive">

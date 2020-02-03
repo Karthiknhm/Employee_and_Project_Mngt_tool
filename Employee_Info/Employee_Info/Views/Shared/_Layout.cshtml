@@ -37,6 +37,8 @@
     <script>
 
         $(document).ready(function () {
+            let EmployeeDetailURL = sessionStorage.getItem("EmployeeDetailURL");
+            $("#EmployeeAllDetailNav").prop("href", EmployeeDetailURL);
 
             $('.navbar-collapse').on('shown.bs.collapse', function () {
                 $("#navbarResponsive").css("margin-right", "40%");
@@ -96,7 +98,7 @@
                         if (User.IsInRole("Manager"))
                         {
                             <li class="nav-item nav-pos">
-                                <a id="AboutNav" class="nav-link js-scroll-trigger
+                                <a id="CreateProjectNav" class="nav-link js-scroll-trigger
                                 @(ViewContext.RouteData.Values["Action"].ToString() == "CreateProject" ? "activeClass" : "")"
                                    href="http://localhost:50183/Project/CreateProject">Project</a>
                             </li>
@@ -104,7 +106,7 @@
                         if (User.IsInRole("Employee"))
                         {
                             <li class="nav-item nav-pos">
-                                <a id="AboutNav" class="nav-link js-scroll-trigger
+                                <a id="EmployeeAllDetailNav" class="nav-link js-scroll-trigger
                                 @(ViewContext.RouteData.Values["Action"].ToString() == "EmployeeAllDetail" ? "activeClass" : "")"
                                    href="@Html.Raw(Html.AttributeEncode(ViewBag.DetailURL))">Personel Detail</a>
                             </li>
@@ -141,7 +143,7 @@
                         if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a id="LoginNav" class="nav-link js-scroll-trigger
+                                <a id="RegisterNav" class="nav-link js-scroll-trigger
                                @(ViewContext.RouteData.Values["Action"].ToString() == "Register" ? "activeClass" : "")"
                                    href="http://localhost:50183/Account/Register"><i class='fas fa-user-plus'></i> Add User</a>
                             </li>

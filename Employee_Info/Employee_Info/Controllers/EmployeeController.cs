@@ -41,6 +41,27 @@ namespace Employee_Info.Controllers
         {
             return Json(new { msg = "Thank you, our team will contact you through "+ queryForm.Email});
         }
+        public void IntiateUserInPrajectMapping(string strEmail)
+        {
+            if (sqlCon.State == ConnectionState.Closed)
+            {
+                sqlCon.Open();
+            }
+
+            SqlCommand select_emp_id = new SqlCommand("select Id from Tb_M_Emp where Email = '" + strEmail + "'", sqlCon);
+
+            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(select_emp_id);
+            DataSet Ds = new DataSet();
+            sqlDataAdapter.Fill(Ds);
+
+            int empid = Convert.ToInt32(Ds.Tables[0].Rows[0]["Id"]);
+
+            SqlCommand SP_M_ProjectMapping = new SqlCommand("SP_M_ProjectMapping", sqlCon);
+            SP_M_ProjectMapping.CommandType = CommandType.StoredProcedure;
+
+            SP_M_ProjectMapping.Parameters.AddWithValue("@Id", empid);
+            sqlCon.Close();
+        }
         // GET: Emp
         public JsonResult GetEmployeeData(int nEmpID)
         {
@@ -377,57 +398,65 @@ namespace Employee_Info.Controllers
                     {
                         Employee employee = new Employee();
 
-                        employee.Name = workSheet.Cells[rowIterator, 1].Value.ToString();
-                        employee.Gender = workSheet.Cells[rowIterator, 2].Value.ToString();
-                        DateTime conv = DateTime.FromOADate(Convert.ToDouble(workSheet.Cells[rowIterator, 3].Value));
-                        employee.DOB = Convert.ToDateTime(conv);
-                        employee.Email = workSheet.Cells[rowIterator, 4].Value.ToString();
-                        employee.Address = workSheet.Cells[rowIterator, 5].Value.ToString();
-                        employee.TechId = workSheet.Cells[rowIterator, 6].Value.ToString();
-                        employee.CompanyBranchCode = workSheet.Cells[rowIterator, 7].Value.ToString();
-                        employee.MaritalStatus = workSheet.Cells[rowIterator, 8].Value.ToString();
-                        employee.FilePath = workSheet.Cells[rowIterator, 9].Value.ToString();
-                        if (employee.Name == null)
+                        employee.Name = (workSheet.Cells[rowIterator, 1].Value ?? string.Empty).ToString();
+                        employee.Gender = (workSheet.Cells[rowIterator, 2].Value ?? string.Empty).ToString();
+                        if (string.Empty != (workSheet.Cells[rowIterator, 3].Value ?? string.Empty).ToString())
+                        {
+                            DateTime conv = DateTime.FromOADate(Convert.ToDouble(workSheet.Cells[rowIterator, 3].Value));
+                            employee.DOB = Convert.ToDateTime(conv);
+                            employee.StrDOB = conv.ToString("yyyy/MM/dd");
+                        }
+                        else
+                        {
+                            employee.DOB = new DateTime();
+                        }
+                        employee.Email = (workSheet.Cells[rowIterator, 4].Value ?? string.Empty).ToString();
+                        employee.Address = (workSheet.Cells[rowIterator, 5].Value ?? string.Empty).ToString();
+                        employee.TechId = (workSheet.Cells[rowIterator, 6].Value ?? string.Empty).ToString();
+                        employee.CompanyBranchCode = (workSheet.Cells[rowIterator, 7].Value ?? string.Empty).ToString();
+                        employee.MaritalStatus = (workSheet.Cells[rowIterator, 8].Value ?? string.Empty).ToString();
+                        employee.FilePath = "";
+                        if (employee.Name == string.Empty)
                         {
                             employee.ExcelUploadStatus = "Name field required";
                             ReturnedByUploadedData.Add(employee);
                         }
-                        else if (employee.Gender == null)
+                        else if (employee.Gender == string.Empty)
                         {
                             employee.ExcelUploadStatus = "Gender field required";
                             ReturnedByUploadedData.Add(employee);
                         }
-                        else if (conv == null)
+                        else if (string.Empty == (workSheet.Cells[rowIterator, 3].Value ?? string.Empty).ToString())
                         {
                             employee.ExcelUploadStatus = "Date of birth field required";
                             ReturnedByUploadedData.Add(employee);
                         }
-                        else if (employee.Email == null)
+                        else if (employee.Email == string.Empty)
                         {
                             employee.ExcelUploadStatus = "Email field required";
                             ReturnedByUploadedData.Add(employee);
                         }
-                        else if (employee.Gender == null)
+                        else if (employee.Gender == string.Empty)
                         {
                             employee.ExcelUploadStatus = "Gender field required";
                             ReturnedByUploadedData.Add(employee);
                         }
-                        else if (employee.Address == null)
+                        else if (employee.Address == string.Empty)
                         {
                             employee.ExcelUploadStatus = "Address field required";
                             ReturnedByUploadedData.Add(employee);
                         }
-                        else if (employee.TechId == null)
+                        else if (employee.TechId == string.Empty)
                         {
                             employee.ExcelUploadStatus = "Technology field required";
                             ReturnedByUploadedData.Add(employee);
                         }
-                        else if (employee.CompanyBranchCode == null)
+                        else if (employee.CompanyBranchCode == string.Empty)
                         {
                             employee.ExcelUploadStatus = "Branch field required";
                             ReturnedByUploadedData.Add(employee);
                         }
-                        else if (employee.MaritalStatus == null)
+                        else if (employee.MaritalStatus == string.Empty)
                         {
                             employee.ExcelUploadStatus = "Marital Status field required";
                             ReturnedByUploadedData.Add(employee);
@@ -455,7 +484,6 @@ namespace Employee_Info.Controllers
                             while (sqlData.Read())
                             {
                                 strresult = sqlData["result"].ToString();
-                                IntiateUserInPrajectMapping(employee.Email);
                             }
                             sqlCon.Close();
 
@@ -524,7 +552,9 @@ namespace Employee_Info.Controllers
                 Sheet.Column(9).AutoFit();
                 Sheet.Column(10).AutoFit();
 
-                row = row - 1;
+                row = row;
+                Sheet.Cells["J2:J" + row].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                Sheet.Cells["J2:J" + row].Style.Fill.BackgroundColor.SetColor(Color.LightYellow);
                 Color colFromHex = ColorTranslator.FromHtml("#B7DEE8");
                 Sheet.Cells["A2:I" + row].Style.Fill.PatternType = ExcelFillStyle.Solid;
                 Sheet.Cells["A2:I" + row].Style.Fill.BackgroundColor.SetColor(colFromHex);
@@ -563,10 +593,17 @@ namespace Employee_Info.Controllers
             {
                 var file = Request.Files[i];
                 var fileName = Path.GetFileName(file.FileName);
-                path = Path.Combine(Server.MapPath("~/App_Data/"), fileName);
+                path = Path.Combine(Server.MapPath("~/Content/images/"), fileName);
                 file.SaveAs(path);
             }
-            employee.FilePath = path;
+
+
+            string firstStrSlash = path.Substring(0, path.LastIndexOf('\\'));
+            string SecondStrSlash = path.Substring(0, firstStrSlash.LastIndexOf('\\'));
+            path = path.Substring(SecondStrSlash.LastIndexOf('\\'), path.Length - SecondStrSlash.LastIndexOf('\\'));
+
+            path = path.Replace('\\', '/');
+            employee.FilePath = "./.." + path;
 
             sqlCon.Open();
 
@@ -608,24 +645,6 @@ namespace Employee_Info.Controllers
             {
                 msg = strPassResult
             });
-        }
-        public void IntiateUserInPrajectMapping(string strEmail)
-        {
-            sqlCon.Open();
-
-            SqlCommand select_emp_id = new SqlCommand("select Id from Tb_M_Emp where Email = '" + strEmail + "'", sqlCon);
-
-            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(select_emp_id);
-            DataSet Ds = new DataSet();
-            sqlDataAdapter.Fill(Ds);
-
-            int empid = Convert.ToInt32(Ds.Tables[0].Rows[0]["Id"]);
-
-            SqlCommand SP_M_ProjectMapping = new SqlCommand("SP_M_ProjectMapping", sqlCon);
-            SP_M_ProjectMapping.CommandType = CommandType.StoredProcedure;
-
-            SP_M_ProjectMapping.Parameters.AddWithValue("@Id", empid);
-            sqlCon.Close();
         }
 
         [Authorize(Roles = "Admin")]

@@ -7,6 +7,11 @@
     <title>Employee Detail</title>
     <script>
         $(document).ready(function () {
+            var sPageEmployeeAllDetailURL = window.location.href;
+            sessionStorage.setItem('EmployeeDetailURL', sPageEmployeeAllDetailURL)
+            let EmployeeDetailURL = sessionStorage.getItem("EmployeeDetailURL");
+            $("#EmployeeAllDetailNav").prop("href", EmployeeDetailURL);
+
             table = $('#proTable').DataTable({
                 "columnDefs": [
                     {

@@ -103,7 +103,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Data\Me.jpg" />
+    <Content Include="Content\images\Me.jpg" />
     <Content Include="Assert\aboutStyle.css" />
     <Content Include="Assert\CreateEmployee.css" />
     <Content Include="Assert\Index.css" />
@@ -208,6 +208,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="App_Data\" />
     <Folder Include="SourceExcel\" />
   </ItemGroup>
   <ItemGroup>

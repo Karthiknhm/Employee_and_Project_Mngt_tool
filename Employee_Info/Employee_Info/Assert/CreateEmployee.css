@@ -147,3 +147,7 @@ form span {
     overflow: auto;
     width: 75%;
 }
+.btn-pos-details-head{
+    margin-left:10px;
+    float:right;
+}
